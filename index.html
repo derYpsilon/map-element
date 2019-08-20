@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./style.css">
+    <title>SVG Proto</title>
+</head>
+
+<body>
+    <div class="element-wrapper">
+        <div class="controls" id="controls">
+            <div class="controls_zoom-button" id="controls-zoom">+</div>
+            <div class="controls_zoom-button" id="controls-unzoom">&mdash;</div>
+            <div class="controls_zoom-button" id="controls-reset">&#10006;</div>
+        </div>
+        <div class="container">
+
+            <div class="scale-wrap">
+                <svg class="svg__cont" id="my-map" xmlns="http://www.w3.org/2000/svg" width="1080" height="1098"
+                    type="image/svg+xml">
+                    <defs>
+                        <linearGradient id="PointGradient" gradientUnits="objectBoundingBox"
+                            gradientTransform="matrix(1 0 0 1 0 0.22)">
+                            <stop offset="0" style="stop-color:#B2916D" />
+                            <stop offset="25%" style="stop-color:#A07D6E" />
+                            <stop offset="68%" style="stop-color:#6F4A6F" />
+                            <stop offset="100%" style="stop-color:#492270" />
+                        </linearGradient>
+                        <linearGradient id="PathGradient" gradientUnits="objectBoundingBox"
+                            gradientTransform="matrix(1 0 0 -1 0 110.1016)">
+                            <stop offset="0" style="stop-color:#B2916D" />
+                            <stop offset="0.23" style="stop-color:#A07D6E" />
+                            <stop offset="0.68" style="stop-color:#6F4A6F" />
+                            <stop offset="1" style="stop-color:#492270" />
+                        </linearGradient>
+                    </defs>
+                    <image href="./images/map.svg" x="0" y="0" width="1080" height="1098" />
+                </svg>
+            </div>
+        </div>
+    </div>
+    <script src="./script.js"></script>
+</body>
+
+</html>
+<!-- width="1080" height="1098" -->
+<!-- viewBox="0 0 1400 1400" -->
