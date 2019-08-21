@@ -1,43 +1,39 @@
-'use strict'
-const svgRoot = document.getElementById('my-map');
-const shoppingPoints = [
-    { x: 847, y: 165, address: 'ул. Широкая, 12Б, \nТЦ Фортуна', logo: './images/logo/azbukabrendov.png' },
-    { x: 343, y: 465, address: 'Сущевский вал, 5 стр. 11,\n ТК Савеловский, \nкорпус Спортивный', logo: './images/logo/nichego.png' },
-    { x: 281, y: 587, address: 'У отца было три сына:\n Старший умный был детина', logo: './images/logo/stripes.png' },
-    { x: 392, y: 624, address: 'Средний был и так и сяк', logo: './images/logo/stripes.png' },
-    { x: 451, y: 688, address: 'Столешников переулок, 7/3', logo: './images/logo/bonappartement.png' },
-    { x: 494, y: 693, address: 'ул. Неглинная, 9', logo: './images/logo/vintagevoyage.png' },
-    { x: 598, y: 648, address: 'Можно делать\n две или \nтри строки', logo: './images/logo/stripes.png' },
-    { x: 521, y: 865, address: 'Знать, столица та была', logo: './images/logo/stripes.png' },
-    { x: 543, y: 715, address: 'ул. Мясницкая, 24/7, стр. 1', logo: './images/logo/secondfriend.png' },
-    { x: 552, y: 726, address: 'Там пшеницу продавали', logo: './images/logo/stripes.png' },
-    { x: 565, y: 752, address: 'Деньги счетом принимали', logo: './images/logo/stripes.png' },
-    { x: 581, y: 732, address: 'И с набитою сумой', logo: './images/logo/stripes.png' },
-    { x: 603, y: 717, address: 'Чистопрудный бульвар, 9', logo: './images/logo/mechta.png' },
-    { x: 601, y: 732, address: 'ул. Покровка, 17', logo: './images/logo/strogo.png' },
-    { x: 601, y: 761, address: 'Надо младшему сбираться', logo: './images/logo/stripes.png' },
-    { x: 617, y: 756, address: 'Он и усом не ведет', logo: './images/logo/stripes.png' },
-    { x: 647, y: 747, address: 'На печи в углу поет', logo: './images/logo/hulk.png' },
-    { x: 638, y: 721, address: 'Лялин переулок, 14, стр. 3', logo: './images/logo/jeans.png' },
-    { x: 452, y: 1000, address: 'Шаболовка, 25, к. 1', logo: './images/logo/frikfrak.png' }
-];
-const pointRadius = 14;
+'use strict';
 
 class ShopMaker {
-    constructor(shoppingPoints, svgObject, r) {
+    constructor(shoppingPoints, svgObject, props) {
         this._canvas = svgObject;
         this._shoppingPoints = shoppingPoints;
         this._active = null;
-        this._radius = r;
+        this._radius = props.pointRadius;
+        this._defaultScale = props.defaultScale;
+        this._scaleStep = props.scaleStep;
+        this._fontSize = props.fontSize;
+        this._font = props.font;
+        this._fontPointerSize = props.fontPointerSize;
+        this._pointFill = props.pointFill;
+        this._pathFill = props.pathFill;
         this._defaultWidth = this._canvas.getAttribute('width');
         this._defaultHeight = this._canvas.getAttribute('height');
-        this._currentScale = 1;
+        this._currentScale = this._defaultScale;
+        this._renderedBanners = [];
+
         this.initScale();
-        this.render();
-        this._canvas.addEventListener('mouseover', () => this.mouseOverHandler(event));
-        this._canvas.addEventListener('mouseout', () => this.mouseOutHandler(event));
+        this.scale();
+        this.renderPoints();
+        this.preloadBanners()
+        
+        this._canvas.addEventListener('mouseover', (event) => this.mouseOverHandler(event));
+        this._canvas.addEventListener('mouseout', (event) => this.mouseOutHandler(event));
+        
+        this._zoomIn = document.getElementById(props.zoomInID);
+        this._zoomOut = document.getElementById(props.zoomOutID);
+        this._zoomReset = document.getElementById(props.zoomResetID);
+        this._zoomIn.addEventListener('click', () => this.zoomIn());
+        this._zoomOut.addEventListener('click', () => this.zoomOut());
+        this._zoomReset.addEventListener('click', () => this.zoomReset());
     }
-    render() {
+    renderPoints() {
         let i = 0;
         this._shoppingPoints.forEach((item) => {
             let group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
@@ -46,7 +42,11 @@ class ShopMaker {
             element.setAttributeNS(null, 'cx', item.x - this._radius);
             element.setAttributeNS(null, 'cy', item.y - this._radius);
             element.setAttributeNS(null, 'r', this._radius);
-            element.setAttributeNS(null, 'fill', 'url(#PointGradient)');
+            element.setAttributeNS(null, 'fill', this._pointFill);
+            element.setAttributeNS(null, 'address', item.address);
+            element.setAttributeNS(null, 'class', 'shop-pointer');
+            element.setAttributeNS(null, 'style', 'cursor: pointer');
+            element.setAttributeNS(null, 'array', i);
 
             group.appendChild(element);
 
@@ -55,24 +55,15 @@ class ShopMaker {
             element.setAttributeNS(null, 'cy', item.y - this._radius);
             element.setAttributeNS(null, 'r', this._radius - 2);
             element.setAttributeNS(null, 'fill', '#fff');
+            element.setAttributeNS(null, 'pointer-events', 'none');
             group.appendChild(element);
 
             element = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
             element.setAttributeNS(null, 'cx', item.x - this._radius);
             element.setAttributeNS(null, 'cy', item.y - this._radius);
             element.setAttributeNS(null, 'r', this._radius - 4);
-            element.setAttributeNS(null, 'fill', 'url(#PointGradient)');
-            group.appendChild(element);
-
-            element = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-            element.setAttributeNS(null, 'cx', item.x - this._radius);
-            element.setAttributeNS(null, 'cy', item.y - this._radius);
-            element.setAttributeNS(null, 'r', this._radius);
-            element.setAttributeNS(null, 'fill', 'rgba(255,255,255,0)');
-            element.setAttributeNS(null, 'address', item.address);
-            element.setAttributeNS(null, 'class', 'shop-pointer');
-            element.setAttributeNS(null, 'style', 'cursor: pointer');
-            element.setAttributeNS(null, 'array', i);
+            element.setAttributeNS(null, 'fill', this._pointFill);
+            element.setAttributeNS(null, 'pointer-events', 'none');
             group.appendChild(element);
 
             this._canvas.appendChild(group);
@@ -97,57 +88,57 @@ class ShopMaker {
             this._canvas.setAttribute('viewBox', `0 0 ${this._defaultWidth} ${this._defaultHeight}`);
         }
         else {
+            (this._defaultScale - this._scaleStep * 3)
             this._canvas.setAttribute('width', this._defaultWidth);
             this._canvas.setAttribute('height', this._defaultHeight);
             this._canvas.setAttribute('viewBox', `0 0 ${x} ${y}`);
         }
     }
     zoomIn() {
-        if (this._currentScale<1.9)this._currentScale += .2;
+        if (this._currentScale <= (this._defaultScale + this._scaleStep * 4)) this._currentScale += this._scaleStep;
         this.scale();
     }
     zoomOut() {
-        if (this._currentScale>0.5) this._currentScale -= .2;
+        if ((this._currentScale > (this._defaultScale - this._scaleStep * 3 + .1)) && ((this._defaultScale - this._scaleStep * 3) > 0)) this._currentScale -= this._scaleStep;
         this.scale();
     }
     zoomReset() {
-        this._currentScale = 1;
+        this._currentScale = this._defaultScale;
         this.scale();
-    }
-    removeBanner() {
-        let banner = document.querySelector('.shop-banner');
-        while (banner.firstChild) {
-            banner.removeChild(banner.firstChild);
-        }
-        banner.remove();
     }
 
     mouseOutHandler(event) {
         if (event.target.classList.contains('shop-pointer')) {
-            this.removeBanner();
+            this._renderedBanners[this._active].setAttributeNS(null, 'visibility', 'hidden');
             this._active = null;
         }
     }
     mouseOverHandler(event) {
-        // let x = (window.Event) ? event.pageX : event.clientX + (document.documentElement.scrollLeft ? document.documentElement.scrollLeft : document.body.scrollLeft);
-        // let y = (window.Event) ? event.pageY : event.clientY + (document.documentElement.scrollTop ? document.documentElement.scrollTop : document.body.scrollTop);
-        // console.log(`x: ${x}, y: ${y}`);
+        // ! Этот код оставлен для того, чтобы в случае добавления новой точки, можно было получить ее координаты в консоли
+        // const xM = (window.Event) ? event.pageX : event.clientX + (document.documentElement.scrollLeft ? document.documentElement.scrollLeft : document.body.scrollLeft);
+        // const yM = (window.Event) ? event.pageY : event.clientY + (document.documentElement.scrollTop ? document.documentElement.scrollTop : document.body.scrollTop);
+        // console.log(`x: ${xM}, y: ${yM}`);
         if (event.target.classList.contains('shop-pointer')) {
 
             const index = event.target.getAttributeNS(null, 'array');
-            if (this._active !== null) {
-                if (this._active === index) return;
-                this.removeBanner();
-            }
-            const x = this._shoppingPoints[index].x;
-            const y = this._shoppingPoints[index].y;
-            const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            this._renderedBanners[index].setAttributeNS(null, 'visibility', 'visible');
+            this._active = index;
+        }
+    }
+
+    preloadBanners() {
+        this._shoppingPoints.forEach((item, index) => {
+            let x = item.x;
+            let y = item.y;
+            let group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
             group.setAttributeNS(null, 'class', 'shop-banner');
             group.appendChild(this.drawBanner(x, y, index));
             group.appendChild(this.drawPointer(x, y));
-            this._canvas.appendChild(group);
-            this._active = index;
-        }
+            group.setAttributeNS(null, 'pointer-events', 'none');
+            group.setAttributeNS(null, 'visibility', 'hidden');
+            this._renderedBanners.push(group);
+            this._canvas.appendChild(this._renderedBanners[index]);
+        })
     }
 
     drawBanner(x, y, index) {
@@ -156,7 +147,7 @@ class ShopMaker {
         let offsetX = 30;
         let offsetY = 50;
 
-        if (((x + this._radius) + offsetX + rWidth)*this._currentScale > this._canvas.getAttribute('width')) {
+        if (((x + this._radius) + offsetX + rWidth) * (this._currentScale > 1 ? this._currentScale : 1) > this._canvas.getAttribute('width')) {
             offsetX = (-offsetX - rWidth - (this._radius * 2));
         }
         if (y - offsetY - rHeight < 0) offsetY = 0;
@@ -177,6 +168,7 @@ class ShopMaker {
         gradientSeparator.setAttributeNS(null, 'height', 4);
         gradientSeparator.setAttributeNS(null, 'fill', 'url(#PointGradient)');
 
+        // Логотип    
         const logo = document.createElementNS('http://www.w3.org/2000/svg', 'image');
         logo.setAttributeNS(null, 'x', x + offsetX + 10);
         logo.setAttributeNS(null, 'y', y - offsetY - rHeight + 2);
@@ -191,16 +183,14 @@ class ShopMaker {
         text.setAttributeNS(null, 'y', y - offsetY - rHeight / 2 + 24);
         text.setAttributeNS(null, 'text-anchor', 'middle');
         text.setAttributeNS(null, 'fill', 'black');
-        text.setAttributeNS(null, 'style', 'font-family: Myriad; font-weight: bold; font-size: 18px;');
+        text.setAttributeNS(null, 'style', `font-family: ${this._font}; font-weight: bold; font-size: ${this._fontSize}px;`);
 
-        this.drawText(index, text, x + offsetX + rWidth / 2, 20);
+        this.drawText(index, text, x + offsetX + rWidth / 2, this._fontSize + 2);
 
         group.appendChild(bannerBG);
         group.appendChild(text);
         group.appendChild(gradientSeparator);
         group.appendChild(logo);
-
-
 
         return group;
     }
@@ -211,7 +201,7 @@ class ShopMaker {
 
         const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
         path.setAttributeNS(null, 'd', `m${x - this._radius} ${y - this._radius} q 20 -20, 30 -40 q 5 -15, 0 -30   q -10 -20, -30 -20 q -20 0, -30 20   q -5 15, 0 30 q 10 20, 30 40 z`);
-        path.setAttributeNS(null, 'fill', 'url(#PathGradient)');
+        path.setAttributeNS(null, 'fill', this._pathFill);
         path.setAttributeNS(null, 'stroke', '#fff');
         group.appendChild(path);
 
@@ -227,17 +217,18 @@ class ShopMaker {
         const sLetter = document.createElementNS('http://www.w3.org/2000/svg', 'text');
         const sText = document.createTextNode('S');
         sLetter.setAttributeNS(null, 'x', x - this._radius);
-        sLetter.setAttributeNS(null, 'y', y - 67 + 13);
+        sLetter.setAttributeNS(null, 'y', y - 54);
         sLetter.setAttributeNS(null, 'text-anchor', 'middle');
         sLetter.setAttributeNS(null, 'fill', 'white');
-        sLetter.setAttributeNS(null, 'style', 'font-family: Myriad; font-weight: bold; font-size: 36px;');
+        sLetter.setAttributeNS(null, 'style', `font-family: ${this._font}; font-weight: bold; font-size: ${this._fontPointerSize}px;`);
         sLetter.appendChild(sText);
         group.appendChild(sLetter);
-        // Наконец закончился
+
         return group;
     }
 
     drawText(index, textElement, xPos, lineHeight) {
+        // Построчный вывод текста в баннере
         const textLines = this._shoppingPoints[index].address.split('\n');
         textLines.forEach((item, count) => {
             let ts = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
@@ -247,15 +238,46 @@ class ShopMaker {
             ts.setAttributeNS(null, 'x', xPos);
             ts.setAttributeNS(null, 'text-anchor', 'middle');
             ts.appendChild(text);
-            //console.log(text);
             textElement.appendChild(ts);
         });
     }
 }
-const render = new ShopMaker(shoppingPoints, svgRoot, 13);
-const zoom = document.getElementById('controls-zoom');
-const unzoom = document.getElementById('controls-unzoom');
-const reset = document.getElementById('controls-reset');
-zoom.addEventListener('click', () => { render.zoomIn() });
-unzoom.addEventListener('click', () => { render.zoomOut() });
-reset.addEventListener('click', () => { render.zoomReset() });
+
+const shoppingPoints = [
+    { x: 847, y: 165, address: 'ул. Широкая, 12Б, \nТЦ Фортуна', logo: './images/logo/azbukabrendov.png' },
+    { x: 343, y: 465, address: 'Сущевский вал, 5 стр. 11,\n ТК Савеловский, \nкорпус Спортивный', logo: './images/logo/nichego.png' },
+    { x: 281, y: 587, address: 'Адрес #1\n Торговый центр\n Корпус', logo: './images/logo/stripes.png' },
+    { x: 392, y: 624, address: 'Адрес #2\n Торговый центр\n Корпус', logo: './images/logo/stripes.png' },
+    { x: 451, y: 688, address: 'Столешников переулок, 7/3', logo: './images/logo/bonappartement.png' },
+    { x: 494, y: 693, address: 'ул. Неглинная, 9', logo: './images/logo/vintagevoyage.png' },
+    { x: 598, y: 648, address: 'Адрес #3\n Торговый центр\n Корпус', logo: './images/logo/stripes.png' },
+    { x: 521, y: 865, address: 'Адрес #4\n Торговый центр\n Корпус', logo: './images/logo/stripes.png' },
+    { x: 543, y: 715, address: 'ул. Мясницкая, 24/7, стр. 1', logo: './images/logo/secondfriend.png' },
+    { x: 552, y: 726, address: 'Адрес #5\n Торговый центр\n Корпус', logo: './images/logo/stripes.png' },
+    { x: 565, y: 752, address: 'Адрес #6\n Торговый центр\n Корпус', logo: './images/logo/stripes.png' },
+    { x: 581, y: 732, address: 'Адрес #7\n Торговый центр\n Корпус', logo: './images/logo/stripes.png' },
+    { x: 603, y: 717, address: 'Чистопрудный бульвар, 9', logo: './images/logo/mechta.png' },
+    { x: 601, y: 732, address: 'ул. Покровка, 17', logo: './images/logo/strogo.png' },
+    { x: 601, y: 761, address: 'Адрес #8\n Торговый центр\n Корпус', logo: './images/logo/stripes.png' },
+    { x: 617, y: 756, address: 'Адрес #9\n Торговый центр\n Корпус', logo: './images/logo/stripes.png' },
+    { x: 647, y: 747, address: 'Адрес #10\n Торговый центр\n Корпус', logo: './images/logo/stripes.png' },
+    { x: 638, y: 721, address: 'Лялин переулок, 14, стр. 3', logo: './images/logo/jeans.png' },
+    { x: 452, y: 1000, address: 'Шаболовка, 25, к. 1', logo: './images/logo/frikfrak.png' }
+];
+
+const props = {
+    font: 'Myriad, Helvetica, Arial, sans-serif', // Шрифт
+    pointRadius: 14, // Радиус точки на карте
+    defaultScale: .8, // Масштаб по умолчанию (от размеров оригинальной карты)
+    scaleStep: 0.2, // Шаг масштабирования
+    fontSize: 18, // Размер шрифта для адресов на баннере
+    fontPointerSize: 36, // Размер шрифта для буквы в указателе
+    zoomInID: 'map-controls-zoom-in', // ID элементов для зума
+    zoomOutID: 'map-controls-zoom-out',
+    zoomResetID: 'map-controls-reset',
+    pointFill: 'url(#PointGradient)', // Заливка для точки на карте, можно просто указать цвет, например 'blue'
+    pathFill: 'url(#PathGradient)' // Заливка для указателя на карте, можно просто указать цвет, например 'red'
+};
+
+const svgRoot = document.getElementById('shops-map'); // Получаем элемент карты
+const renderMap = new ShopMaker(shoppingPoints, svgRoot, props); // Инициализируем объект класса
