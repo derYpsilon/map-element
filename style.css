@@ -4,37 +4,28 @@
   font-weight: 400;
   src: url("./fonts/font.otf") format("opentype");
 }
-/* ! ВАЖНО !  Размеры map и map-container должны совпадать */
-.map {
-    position:relative;
-    width: 1000px;
-    height: 900px;
-    margin: auto;
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #fff;
 }
+
 .map-container {
-  width: 1000px;
-  height: 900px;
+  width: 100%;
+  height: 100%;
+  display: block;
+  resize: none;
   overflow-x: auto;
   overflow-y: auto;
 }
 
-@media screen and (max-width: 1023px) {
-  .map-container {
-    width: 100%;
-    height: 80vh;
-  }
-  .map {
-    width: 100%;
-    height: 80vh;
-  }
-}
-
 .map-controls {
   display: flex;
-  position: absolute;
+  position: fixed;
   top: 10px;
   left: 10px;
   flex-direction: column;
+  z-index: 10;
 }
 
 .map-controls__zoom-button {
@@ -58,9 +49,12 @@
   color: grey;
 }
 
+.map-controls__zoom-button:hover {
+  transform: scale(1.1, 1.1);
+}
+
 .map-container__scale-wrap {
   overflow: hidden; 
-  position: relative;
   display: block;
 }
 .map-container__svg-canvas {

@@ -1,31 +1,69 @@
 'use strict';
 
+const SHOPPING_POINTS = [
+    { x: 847, y: 165, address: 'ул. Широкая, 12Б, \nТЦ Фортуна', title: '', logo: './images/logo/azbukabrendov.png' },
+    { x: 343, y: 465, address: 'Сущевский вал, 5 стр. 11,\n ТК Савеловский, \nкорпус Спортивный', title: '', logo: './images/logo/nichego.png' },
+    { x: 281, y: 587, address: '1-й Боткинский проезд,\n д. 7с1', title: 'Charity Shop', logo: '' },
+    { x: 392, y: 624, address: 'ул. Фадеева, д. 7, стр. 1', title: 'Charity Shop', logo: '' },
+    { x: 451, y: 688, address: 'Столешников переулок, 7/3', title: '', logo: './images/logo/bonappartement.png' },
+    { x: 494, y: 693, address: 'ул. Неглинная, 9', title: '', logo: './images/logo/vintagevoyage.png' },
+    { x: 598, y: 648, address: 'ул. Садовая-Спасская,\nд. 12/23с2', title: 'Charity Shop', logo: '' },
+    { x: 521, y: 865, address: 'ул. Новокузнецкая, д. 1', title: 'Charity Shop', logo: '' },
+    { x: 543, y: 715, address: 'ул. Мясницкая, 24/7, стр. 1', title: '', logo: './images/logo/secondfriend.png' },
+    // { x: 552, y: 726, address: 'Адреса нет на макетах', title: '', logo: './images/logo/stripes.png' },
+    { x: 565, y: 752, address: 'Большой Златоустинский пер.,\n д. 8/7', title: 'Fefëla Vintage', logo: '' },
+    { x: 581, y: 732, address: 'ул. Покровка, д. 1', title: 'Total Vintage', logo: '' },
+    { x: 603, y: 717, address: 'Чистопрудный бульвар, 9', title: '', logo: './images/logo/mechta.png' },
+    { x: 601, y: 732, address: 'ул. Покровка, 17', title: '', logo: './images/logo/strogo.png' },
+    { x: 601, y: 761, address: 'Хохловский пер., д. 3', title: 'Legacy Showroom', logo: '' },
+    { x: 617, y: 756, address: 'Хохловский пер., д. 7-9, 2', title: 'Mix and Max Vintage', logo: '' },
+    // { x: 647, y: 747, address: 'Адреса нет на макетах', title: 'Нет названия', logo: './images/logo/stripes.png' },
+    { x: 638, y: 721, address: 'Лялин переулок, 14, стр. 3', title: '', logo: './images/logo/jeans.png' },
+    { x: 452, y: 1000, address: 'Шаболовка, 25, к. 1', title: '', logo: './images/logo/frikfrak.png' }
+];
+
+const PROPS = {
+    font: 'Myriad, Helvetica, Arial, sans-serif', // Шрифт
+    pointRadius: 14, // Радиус точки на карте
+    scaleStep: 0.2, // Шаг масштабирования
+    fontSize: 18, // Размер шрифта для адресов на баннере
+    fontTitleSize: 26,
+    fontPointerSize: 36, // Размер шрифта для буквы в указателе
+    zoomInID: 'map-controls-zoom-in', // ID элементов для зума
+    zoomOutID: 'map-controls-zoom-out',
+    zoomResetID: 'map-controls-reset',
+    pointFill: 'url(#PointGradient)', // Заливка для точки на карте, можно просто указать цвет, например 'blue'
+    pathFill: 'url(#PathGradient)' // Заливка для указателя на карте, можно просто указать цвет, например 'red'
+};
+
 class ShopMaker {
     constructor(shoppingPoints, svgObject, props) {
         this._canvas = svgObject;
         this._shoppingPoints = shoppingPoints;
         this._active = null;
         this._radius = props.pointRadius;
-        this._defaultScale = props.defaultScale;
         this._scaleStep = props.scaleStep;
         this._fontSize = props.fontSize;
+        this._fontTitleSize = props.fontTitleSize;
         this._font = props.font;
         this._fontPointerSize = props.fontPointerSize;
         this._pointFill = props.pointFill;
         this._pathFill = props.pathFill;
         this._defaultWidth = this._canvas.getAttribute('width');
         this._defaultHeight = this._canvas.getAttribute('height');
+        this._defaultScale = document.body.clientWidth / this._defaultWidth;
+        document.querySelector('.map-container').style = `height: ${window.innerHeight}px; width: ${window.innerWidth}px`;
         this._currentScale = this._defaultScale;
         this._renderedBanners = [];
 
         this.initScale();
         this.scale();
         this.renderPoints();
-        this.preloadBanners()
-        
+        this.preloadBanners();
+
         this._canvas.addEventListener('mouseover', (event) => this.mouseOverHandler(event));
         this._canvas.addEventListener('mouseout', (event) => this.mouseOutHandler(event));
-        
+
         this._zoomIn = document.getElementById(props.zoomInID);
         this._zoomOut = document.getElementById(props.zoomOutID);
         this._zoomReset = document.getElementById(props.zoomResetID);
@@ -88,7 +126,6 @@ class ShopMaker {
             this._canvas.setAttribute('viewBox', `0 0 ${this._defaultWidth} ${this._defaultHeight}`);
         }
         else {
-            (this._defaultScale - this._scaleStep * 3)
             this._canvas.setAttribute('width', this._defaultWidth);
             this._canvas.setAttribute('height', this._defaultHeight);
             this._canvas.setAttribute('viewBox', `0 0 ${x} ${y}`);
@@ -168,14 +205,20 @@ class ShopMaker {
         gradientSeparator.setAttributeNS(null, 'height', 4);
         gradientSeparator.setAttributeNS(null, 'fill', 'url(#PointGradient)');
 
-        // Логотип    
-        const logo = document.createElementNS('http://www.w3.org/2000/svg', 'image');
-        logo.setAttributeNS(null, 'x', x + offsetX + 10);
-        logo.setAttributeNS(null, 'y', y - offsetY - rHeight + 2);
-        logo.setAttributeNS(null, 'width', rWidth - 20);
-        logo.setAttributeNS(null, 'height', rHeight / 2 - 4);
-        logo.setAttributeNS(null, 'href', this._shoppingPoints[index].logo);
-        logo.setAttributeNS(null, 'preserveAspectRatio', 'xMidYMid meet');
+        // Логотип или Название
+        let logo;
+        if (this._shoppingPoints[index].logo !== '') {
+            logo = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+            logo.setAttributeNS(null, 'x', x + offsetX + 10);
+            logo.setAttributeNS(null, 'y', y - offsetY - rHeight + 2);
+            logo.setAttributeNS(null, 'width', rWidth - 20);
+            logo.setAttributeNS(null, 'height', rHeight / 2 - 4);
+            logo.setAttributeNS(null, 'href', this._shoppingPoints[index].logo);
+            logo.setAttributeNS(null, 'preserveAspectRatio', 'xMidYMid meet');
+        }
+        else {
+            logo = this.drawTitle(index, x + offsetX + rWidth / 2, y - .75*rHeight - offsetY + this._fontTitleSize/2);
+        }
 
         // Адрес на баннере
         const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
@@ -183,7 +226,7 @@ class ShopMaker {
         text.setAttributeNS(null, 'y', y - offsetY - rHeight / 2 + 24);
         text.setAttributeNS(null, 'text-anchor', 'middle');
         text.setAttributeNS(null, 'fill', 'black');
-        text.setAttributeNS(null, 'style', `font-family: ${this._font}; font-weight: bold; font-size: ${this._fontSize}px;`);
+        text.setAttributeNS(null, 'style', `font-family: ${this._font}; font-size: ${this._fontSize}px;`);
 
         this.drawText(index, text, x + offsetX + rWidth / 2, this._fontSize + 2);
 
@@ -241,43 +284,19 @@ class ShopMaker {
             textElement.appendChild(ts);
         });
     }
+    drawTitle(index, x, y) {
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttributeNS(null, 'x', x);
+        text.setAttributeNS(null, 'y', y);
+        text.setAttributeNS(null, 'text-anchor', 'middle');
+        text.setAttributeNS(null, 'fill', 'black');
+        text.setAttributeNS(null, 'style', `font-family: ${this._font}; font-weight: bold; font-size: ${this._fontTitleSize}px;`);
+        const shopTitle = document.createTextNode(this._shoppingPoints[index].title.trim());
+        text.appendChild(shopTitle);
+
+        return text;
+    }
 }
 
-const shoppingPoints = [
-    { x: 847, y: 165, address: 'ул. Широкая, 12Б, \nТЦ Фортуна', logo: './images/logo/azbukabrendov.png' },
-    { x: 343, y: 465, address: 'Сущевский вал, 5 стр. 11,\n ТК Савеловский, \nкорпус Спортивный', logo: './images/logo/nichego.png' },
-    { x: 281, y: 587, address: 'Адрес #1\n Торговый центр\n Корпус', logo: './images/logo/stripes.png' },
-    { x: 392, y: 624, address: 'Адрес #2\n Торговый центр\n Корпус', logo: './images/logo/stripes.png' },
-    { x: 451, y: 688, address: 'Столешников переулок, 7/3', logo: './images/logo/bonappartement.png' },
-    { x: 494, y: 693, address: 'ул. Неглинная, 9', logo: './images/logo/vintagevoyage.png' },
-    { x: 598, y: 648, address: 'Адрес #3\n Торговый центр\n Корпус', logo: './images/logo/stripes.png' },
-    { x: 521, y: 865, address: 'Адрес #4\n Торговый центр\n Корпус', logo: './images/logo/stripes.png' },
-    { x: 543, y: 715, address: 'ул. Мясницкая, 24/7, стр. 1', logo: './images/logo/secondfriend.png' },
-    { x: 552, y: 726, address: 'Адрес #5\n Торговый центр\n Корпус', logo: './images/logo/stripes.png' },
-    { x: 565, y: 752, address: 'Адрес #6\n Торговый центр\n Корпус', logo: './images/logo/stripes.png' },
-    { x: 581, y: 732, address: 'Адрес #7\n Торговый центр\n Корпус', logo: './images/logo/stripes.png' },
-    { x: 603, y: 717, address: 'Чистопрудный бульвар, 9', logo: './images/logo/mechta.png' },
-    { x: 601, y: 732, address: 'ул. Покровка, 17', logo: './images/logo/strogo.png' },
-    { x: 601, y: 761, address: 'Адрес #8\n Торговый центр\n Корпус', logo: './images/logo/stripes.png' },
-    { x: 617, y: 756, address: 'Адрес #9\n Торговый центр\n Корпус', logo: './images/logo/stripes.png' },
-    { x: 647, y: 747, address: 'Адрес #10\n Торговый центр\n Корпус', logo: './images/logo/stripes.png' },
-    { x: 638, y: 721, address: 'Лялин переулок, 14, стр. 3', logo: './images/logo/jeans.png' },
-    { x: 452, y: 1000, address: 'Шаболовка, 25, к. 1', logo: './images/logo/frikfrak.png' }
-];
-
-const props = {
-    font: 'Myriad, Helvetica, Arial, sans-serif', // Шрифт
-    pointRadius: 14, // Радиус точки на карте
-    defaultScale: .8, // Масштаб по умолчанию (от размеров оригинальной карты)
-    scaleStep: 0.2, // Шаг масштабирования
-    fontSize: 18, // Размер шрифта для адресов на баннере
-    fontPointerSize: 36, // Размер шрифта для буквы в указателе
-    zoomInID: 'map-controls-zoom-in', // ID элементов для зума
-    zoomOutID: 'map-controls-zoom-out',
-    zoomResetID: 'map-controls-reset',
-    pointFill: 'url(#PointGradient)', // Заливка для точки на карте, можно просто указать цвет, например 'blue'
-    pathFill: 'url(#PathGradient)' // Заливка для указателя на карте, можно просто указать цвет, например 'red'
-};
-
 const svgRoot = document.getElementById('shops-map'); // Получаем элемент карты
-const renderMap = new ShopMaker(shoppingPoints, svgRoot, props); // Инициализируем объект класса
+new ShopMaker(SHOPPING_POINTS, svgRoot, PROPS); // Инициализируем объект класса
