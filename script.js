@@ -64,7 +64,6 @@ class ShopMaker {
 
         this._canvas.addEventListener('mouseover', (event) => this.mouseHandler(event));
         this._canvas.addEventListener('mouseout', (event) => this.mouseOutHandler(event));
-        this._canvas.addEventListener('click', (event) => this.mouseHandler(event));
 
         this._zoomIn = document.getElementById(props.zoomInID);
         this._zoomOut = document.getElementById(props.zoomOutID);
@@ -160,13 +159,6 @@ class ShopMaker {
         if (event.target.classList.contains('shop-pointer')) {
 
             const index = event.target.getAttributeNS(null, 'array');
-            if (event.type==='click') {
-                if (this._active===index) {
-                    this._renderedBanners[index].setAttributeNS(null, 'visibility', 'hidden');
-                    this._active=null;
-                    return;
-                }
-            }
             this._renderedBanners[index].setAttributeNS(null, 'visibility', 'visible');
             this._active = index;
         }
