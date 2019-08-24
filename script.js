@@ -27,7 +27,7 @@ const PROPS = {
     pointRadius: 14, // Радиус точки на карте
     scaleStep: 0.2, // Шаг масштабирования
     fontSize: 18, // Размер шрифта для адресов на баннере
-    fontTitleSize: 26,
+    fontTitleSize: 26, // Размер шрифта для названия магазина
     fontPointerSize: 36, // Размер шрифта для буквы в указателе
     zoomInID: 'map-controls-zoom-in', // ID элементов для зума
     zoomOutID: 'map-controls-zoom-out',
@@ -49,6 +49,7 @@ class ShopMaker {
         this._fontPointerSize = props.fontPointerSize;
         this._pointFill = props.pointFill;
         this._pathFill = props.pathFill;
+
         this._defaultWidth = this._canvas.getAttribute('width');
         this._defaultHeight = this._canvas.getAttribute('height');
         this._defaultScale = document.body.clientWidth / this._defaultWidth;
@@ -61,8 +62,9 @@ class ShopMaker {
         this.renderPoints();
         this.preloadBanners();
 
-        this._canvas.addEventListener('mouseover', (event) => this.mouseOverHandler(event));
+        this._canvas.addEventListener('mouseover', (event) => this.mouseHandler(event));
         this._canvas.addEventListener('mouseout', (event) => this.mouseOutHandler(event));
+        this._canvas.addEventListener('click', (event) => this.mouseHandler(event));
 
         this._zoomIn = document.getElementById(props.zoomInID);
         this._zoomOut = document.getElementById(props.zoomOutID);
@@ -132,11 +134,11 @@ class ShopMaker {
         }
     }
     zoomIn() {
-        if (this._currentScale <= (this._defaultScale + this._scaleStep * 4)) this._currentScale += this._scaleStep;
+        if (this._currentScale <= 3) this._currentScale += this._scaleStep;
         this.scale();
     }
     zoomOut() {
-        if ((this._currentScale > (this._defaultScale - this._scaleStep * 3 + .1)) && ((this._defaultScale - this._scaleStep * 3) > 0)) this._currentScale -= this._scaleStep;
+        if (this._currentScale - this._scaleStep > 0.1) this._currentScale -= this._scaleStep;
         this.scale();
     }
     zoomReset() {
@@ -150,14 +152,21 @@ class ShopMaker {
             this._active = null;
         }
     }
-    mouseOverHandler(event) {
+    mouseHandler(event) {
         // ! Этот код оставлен для того, чтобы в случае добавления новой точки, можно было получить ее координаты в консоли
         // const xM = (window.Event) ? event.pageX : event.clientX + (document.documentElement.scrollLeft ? document.documentElement.scrollLeft : document.body.scrollLeft);
         // const yM = (window.Event) ? event.pageY : event.clientY + (document.documentElement.scrollTop ? document.documentElement.scrollTop : document.body.scrollTop);
-        // console.log(`x: ${xM}, y: ${yM}`);
+        // console.log(`x: ${xM}, y: ${yM}`);        
         if (event.target.classList.contains('shop-pointer')) {
 
             const index = event.target.getAttributeNS(null, 'array');
+            if (event.type==='click') {
+                if (this._active===index) {
+                    this._renderedBanners[index].setAttributeNS(null, 'visibility', 'hidden');
+                    this._active=null;
+                    return;
+                }
+            }
             this._renderedBanners[index].setAttributeNS(null, 'visibility', 'visible');
             this._active = index;
         }
@@ -207,7 +216,7 @@ class ShopMaker {
 
         // Логотип или Название
         let logo;
-        if (this._shoppingPoints[index].logo !== '') {
+        if (this._shoppingPoints[index].logo.trim() !== '') {
             logo = document.createElementNS('http://www.w3.org/2000/svg', 'image');
             logo.setAttributeNS(null, 'x', x + offsetX + 10);
             logo.setAttributeNS(null, 'y', y - offsetY - rHeight + 2);

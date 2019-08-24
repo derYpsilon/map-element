@@ -4,6 +4,7 @@
   font-weight: 400;
   src: url("./fonts/font.otf") format("opentype");
 }
+
 body {
   margin: 0;
   padding: 0;
@@ -41,10 +42,11 @@ body {
   background: rgba(255, 255, 255, 0.8);
   z-index: 10;
 }
+
 .map-controls__zoom-button-text {
   font-family: Arial, Helvetica, sans-serif;
-  font-size: .9rem;
-  line-height: .9rem;
+  font-size: 0.9rem;
+  line-height: 0.9rem;
   font-weight: bold;
   color: grey;
 }
@@ -54,9 +56,11 @@ body {
 }
 
 .map-container__scale-wrap {
-  overflow: hidden; 
+  overflow: hidden;
   display: block;
 }
+
 .map-container__svg-canvas {
   margin: auto;
 }
+
