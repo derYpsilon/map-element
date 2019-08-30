@@ -240,35 +240,15 @@ class ShopMaker {
     }
 
     drawPointer(x, y) {
-        // Указатель местоположения
-        const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        const balloon = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+        balloon.setAttributeNS(null, 'x', x-40-this._radius);
+        balloon.setAttributeNS(null, 'y', y-102-this._radius);
+        balloon.setAttributeNS(null, 'width', 80);
+        balloon.setAttributeNS(null, 'height', 102);
+        balloon.setAttributeNS(null, 'href', './images/balloon.svg');
+        balloon.setAttributeNS(null, 'preserveAspectRatio', 'xMidYMid meet');
 
-        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        path.setAttributeNS(null, 'd', `m${x - this._radius} ${y - this._radius} q 20 -20, 30 -40 q 5 -15, 0 -30   q -10 -20, -30 -20 q -20 0, -30 20   q -5 15, 0 30 q 10 20, 30 40 z`);
-        path.setAttributeNS(null, 'fill', this._pathFill);
-        path.setAttributeNS(null, 'stroke', '#fff');
-        group.appendChild(path);
-
-        const blueCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        blueCircle.setAttributeNS(null, 'cx', x - this._radius);
-        blueCircle.setAttributeNS(null, 'cy', y - 67);
-        blueCircle.setAttributeNS(null, 'r', 23);
-        blueCircle.setAttributeNS(null, 'fill', '#471E72');
-        blueCircle.setAttributeNS(null, 'stroke-width', 3);
-        blueCircle.setAttributeNS(null, 'stroke', '#fff');
-        group.appendChild(blueCircle);
-
-        const sLetter = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        const sText = document.createTextNode('S');
-        sLetter.setAttributeNS(null, 'x', x - this._radius);
-        sLetter.setAttributeNS(null, 'y', y - 54);
-        sLetter.setAttributeNS(null, 'text-anchor', 'middle');
-        sLetter.setAttributeNS(null, 'fill', 'white');
-        sLetter.setAttributeNS(null, 'style', `font-family: ${this._font}; font-weight: bold; font-size: ${this._fontPointerSize}px;`);
-        sLetter.appendChild(sText);
-        group.appendChild(sLetter);
-
-        return group;
+        return balloon;
     }
 
     drawText(index, textElement, xPos, lineHeight) {
